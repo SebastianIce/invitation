@@ -11,7 +11,46 @@
 body {
     font-family: "PingFang SC","Microsoft YaHei";
     overflow:hidden;
-    background:#000;
+}
+
+/* 页面容器 */
+.container {
+    position:relative;
+    width:100%;
+    height:100vh;
+}
+
+/* 页面 */
+.page {
+    position:absolute;
+    width:100%;
+    height:100%;
+    top:0;
+    left:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(#b30000,#660000);
+    color:white;
+    text-align:center;
+    padding:20px;
+    transition:transform 0.5s ease;
+}
+
+/* 标题 */
+h1 { font-size:34px; color:gold; margin-bottom:20px; }
+h2 { font-size:24px; margin-bottom:15px; }
+p { font-size:18px; line-height:1.6; }
+
+/* 照片 */
+.photo {
+    width:240px;
+    height:300px;
+    border-radius:20px;
+    object-fit:cover;
+    box-shadow:0 15px 40px rgba(0,0,0,0.6);
+    margin-bottom:20px;
 }
 
 /* 音乐按钮 */
@@ -28,164 +67,133 @@ body {
     align-items:center;
     justify-content:center;
     font-size:20px;
-    cursor:pointer;
 }
 
-/* 滑动容器 */
-.container {
-    height:100vh;
-    overflow-y:scroll;
-    scroll-snap-type:y mandatory;
-}
-
-/* 页面 */
-.page {
-    height:100vh;
-    scroll-snap-align:start;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    background:linear-gradient(#b30000,#660000);
-    color:white;
-    text-align:center;
-    padding:20px;
-}
-
-/* 标题 */
-h1 { font-size:34px; color:gold; margin-bottom:20px; }
-h2 { font-size:24px; margin-bottom:15px; }
-p { font-size:18px; line-height:1.6; }
-
-/* 动画 */
-.fade { animation:fadeUp 1.5s ease; }
-
-@keyframes fadeUp {
-    from { opacity:0; transform:translateY(50px);}
-    to { opacity:1; transform:translateY(0);}
-}
-
-/* 照片 */
-.photo {
-    width:240px;
-    height:300px;
-    border-radius:20px;
-    object-fit:cover;
-    box-shadow:0 15px 40px rgba(0,0,0,0.6);
-    margin-bottom:20px;
-}
-
-/* 金色粒子 */
+/* 粒子 */
 canvas {
     position:fixed;
     top:0;
     left:0;
-    z-index:0;
-}
-
-/* 按钮 */
-.btn {
-    margin-top:20px;
-    padding:10px 20px;
-    background:gold;
-    color:#660000;
-    border-radius:20px;
-    text-decoration:none;
+    z-index:-1;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 粒子背景 -->
 <canvas id="canvas"></canvas>
 
-<!-- 音乐 -->
 <div class="music-btn" onclick="toggleMusic()">🎵</div>
 <audio id="bgm" loop>
     <source src="https://www.w3schools.com/html/horse.mp3">
 </audio>
 
-<div class="container">
+<div class="container" id="container">
 
-<!-- 封面 -->
-<div class="page fade">
+<!-- 页面 -->
+<div class="page"> 
     <h1>🎂 寿宴邀请函 🎂</h1>
     <h2>喜迎华诞 · 福寿安康</h2>
-    <p>—— 恭贺母亲生日 ——</p>
 </div>
 
-<!-- 照片 -->
-<div class="page fade">
+<div class="page">
     <img src="mom.jpg" class="photo">
     <h2>岁月温柔 · 优雅如初</h2>
 </div>
 
-<!-- 情感 -->
-<div class="page fade">
+<div class="page">
     <p>
         时光流转，爱意不变。<br><br>
-        她用一生的温柔<br>
-        守护我们的成长。<br><br>
-        愿与您共享这份温暖
+        她用一生守护我们<br>
+        愿与您共享这份幸福
     </p>
 </div>
 
-<!-- 信息 -->
-<div class="page fade">
+<div class="page">
     <h2 style="color:gold;">诚挚邀请</h2>
     <p>
-        📅 2026年3月29日（星期日）<br><br>
+        📅 2026年3月29日<br><br>
         📍 重庆市九龙坡区西彭镇利川大酒店
     </p>
-
-    <a class="btn" href="https://map.baidu.com/search/利川大酒店" target="_blank">
-        📍 点击导航
-    </a>
 </div>
 
-<!-- 氛围 -->
-<div class="page fade">
+<div class="page">
     <h2>🥂 共聚一堂 · 同享喜悦</h2>
-    <p>有您的到来，将更添光彩</p>
 </div>
 
-<!-- 结尾 -->
-<div class="page fade">
+<div class="page">
     <h2 style="color:gold;">🎉 恭候光临 🎉</h2>
-    <p>不见不散 ✨</p>
 </div>
 
 </div>
 
 <script>
-// 音乐控制
+// 页面滑动控制（核心）
+let pages = document.querySelectorAll('.page');
+let current = 0;
+let startY = 0;
+let isMoving = false;
+
+// 初始化位置
+function updatePages() {
+    pages.forEach((p, i) => {
+        p.style.transform = `translateY(${(i - current) * 100}%)`;
+    });
+}
+updatePages();
+
+// 触摸开始
+document.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+});
+
+// 触摸结束
+document.addEventListener('touchend', e => {
+    if (isMoving) return;
+
+    let endY = e.changedTouches[0].clientY;
+    let diff = startY - endY;
+
+    if (Math.abs(diff) > 50) {
+        isMoving = true;
+
+        if (diff > 0 && current < pages.length - 1) {
+            current++;
+        } else if (diff < 0 && current > 0) {
+            current--;
+        }
+
+        updatePages();
+
+        setTimeout(() => {
+            isMoving = false;
+        }, 500);
+    }
+});
+
+// 音乐
 let audio = document.getElementById("bgm");
 function toggleMusic(){
     if(audio.paused){ audio.play(); }
     else { audio.pause(); }
 }
 
-// 自动尝试播放（部分手机需要点击后才会响）
 document.body.addEventListener("click", () => {
     audio.play().catch(()=>{});
 });
 
-// 粒子效果
+// 粒子
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let particles = [];
-
-for(let i=0;i<80;i++){
+for(let i=0;i<60;i++){
     particles.push({
         x: Math.random()*canvas.width,
         y: Math.random()*canvas.height,
-        r: Math.random()*2,
-        d: Math.random()*1
+        r: Math.random()*2
     });
 }
 
@@ -196,17 +204,8 @@ function draw(){
         ctx.beginPath();
         ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
         ctx.fill();
-    });
-    update();
-}
-
-function update(){
-    particles.forEach(p=>{
-        p.y += p.d;
-        if(p.y > canvas.height){
-            p.y = 0;
-            p.x = Math.random()*canvas.width;
-        }
+        p.y += 0.5;
+        if(p.y > canvas.height) p.y = 0;
     });
 }
 
