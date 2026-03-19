@@ -13,7 +13,19 @@ body {
     overflow:hidden;
 }
 
-/* 页面 */
+#intro {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 1000;
+    animation: fadeOut 2s forwards;
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; visibility: hidden; }
+}
+
 .page {
     position:absolute;
     width:100%;
@@ -27,23 +39,35 @@ body {
     text-align:center;
     padding:20px;
     transition:transform 0.6s ease;
-    z-index:1;
 }
 
-h1 { font-size:34px; color:gold; }
+h1 {
+    font-size:34px;
+    color: gold;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow:0 0 5px gold; }
+    to { text-shadow:0 0 20px gold,0 0 40px gold; }
+}
+
 h2 { font-size:24px; margin:10px 0; }
 p { font-size:18px; line-height:1.6; }
 
-/* 照片 */
 .photo {
     width:240px;
     height:300px;
     border-radius:20px;
     object-fit:cover;
     box-shadow:0 15px 40px rgba(0,0,0,0.6);
+    animation: float 3s ease-in-out infinite;
 }
 
-/* 音乐按钮 */
+@keyframes float {
+    50% { transform: translateY(-10px); }
+}
+
 .music-btn {
     position: fixed;
     top: 20px;
@@ -58,33 +82,26 @@ p { font-size:18px; line-height:1.6; }
     justify-content:center;
 }
 
-/* 🎆 烟花（电影级） */
 .fireworks {
     position: fixed;
     width: 100%;
     height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
     z-index: 999;
+    pointer-events: none;
 }
 
 .firework {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    animation: explode 1s ease-out forwards;
+    position:absolute;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    animation: explode 1s forwards;
 }
 
 @keyframes explode {
-    0% {
-        transform: translate(0, 0);
-        opacity: 1;
-    }
-    100% {
+    to {
         transform: translate(var(--x), var(--y));
-        opacity: 0;
+        opacity:0;
     }
 }
 </style>
@@ -92,31 +109,43 @@ p { font-size:18px; line-height:1.6; }
 
 <body>
 
-<!-- 🎆 烟花容器 -->
+<div id="intro"></div>
+
 <div class="fireworks" id="fireworks"></div>
 
-<!-- 🎵 音乐 -->
 <div class="music-btn" onclick="toggleMusic()">🎵</div>
 <audio id="bgm" loop>
     <source src="music.mp3">
 </audio>
 
 <!-- 页面 -->
+
 <div class="page">
-    <h1>🎂 寿宴邀请函 🎂</h1>
-    <h2>喜迎华诞 · 福寿安康</h2>
+    <h1>🎂 Birthday Party 🎂</h1>
+    <h2>一起庆祝 · 一起开心</h2>
 </div>
 
 <div class="page">
-    <img src="mom.jpg" class="photo">
-    <h2>岁月温柔 · 优雅如初</h2>
+    <img src="mom1.jpg" class="photo">
+    <h2>生活里的温柔瞬间</h2>
+</div>
+
+<div class="page">
+    <img src="mom2.jpg" class="photo">
+    <h2>时间沉淀出的从容与优雅</h2>
+</div>
+
+<div class="page">
+    <img src="mom3.jpg" class="photo">
+    <h2>笑容依旧，闪闪发光</h2>
 </div>
 
 <div class="page">
     <p>
-        时光流转，爱意不变。<br><br>
-        妈，这一天<br>
-        我想让你成为最幸福的人
+        在这个特别的日子里<br><br>
+        我们准备了一场简单而温暖的相聚<br><br>
+        期待与你一起<br>
+        分享这份喜悦
     </p>
 </div>
 
@@ -126,30 +155,25 @@ p { font-size:18px; line-height:1.6; }
         📅 2026年3月29日<br><br>
         📍 重庆市九龙坡区西彭镇利川大酒店
     </p>
-    <a href="https://uri.amap.com/search?keyword=利川大酒店" style="color:gold;">
-        📍 点击导航
-    </a>
 </div>
 
 <div class="page">
-    <h2>🥂 共聚一堂 · 同享喜悦</h2>
-</div>
-
-<div class="page">
-    <h2 style="color:gold;">🎉 恭候光临 🎉</h2>
-    <p>不见不散 ✨</p>
+    <h2 style="color:gold;">🎉 不见不散 🎉</h2>
 </div>
 
 <script>
-// 页面滑动（稳定版）
 let pages = document.querySelectorAll('.page');
 let current = 0;
 let startY = 0;
-let isMoving = false;
+let moving = false;
 
 function update(){
     pages.forEach((p,i)=>{
-        p.style.transform = `translateY(${(i-current)*100}%)`;
+        let offset = (i-current)*100;
+        let scale = i===current ? 1 : 0.9;
+
+        p.style.transform = `translateY(${offset}%) scale(${scale})`;
+        p.style.opacity = i===current ? 1 : 0.5;
     });
 }
 update();
@@ -159,74 +183,50 @@ document.addEventListener('touchstart',e=>{
 });
 
 document.addEventListener('touchend',e=>{
-    if(isMoving) return;
-
+    if(moving) return;
     let diff = startY - e.changedTouches[0].clientY;
 
     if(Math.abs(diff)>50){
-        isMoving = true;
+        moving = true;
 
         if(diff>0 && current<pages.length-1) current++;
         else if(diff<0 && current>0) current--;
 
         update();
-
-        setTimeout(()=>{ isMoving=false; },500);
+        setTimeout(()=>moving=false,500);
     }
 });
 
-// 音乐淡入
 let audio = document.getElementById("bgm");
-audio.volume = 0;
+function toggleMusic(){ audio.play(); }
 
-function toggleMusic(){
-    audio.play();
-    let v = 0;
-    let fade = setInterval(()=>{
-        v += 0.05;
-        if(v >= 1){ clearInterval(fade); }
-        audio.volume = v;
-    },100);
-}
+function createFirework(){
+    const c = document.getElementById("fireworks");
+    let x = Math.random()*window.innerWidth;
+    let y = Math.random()*window.innerHeight*0.5;
 
-document.body.addEventListener("click",()=>{
-    audio.play().catch(()=>{});
-});
-
-// 🎆 烟花（电影级）
-function createFirework() {
-    const container = document.getElementById("fireworks");
-
-    let x = Math.random() * window.innerWidth;
-    let y = Math.random() * window.innerHeight * 0.5;
-
-    for (let i = 0; i < 25; i++) {
+    for(let i=0;i<20;i++){
         let p = document.createElement("div");
-        p.className = "firework";
+        p.className="firework";
 
-        let angle = Math.random() * 2 * Math.PI;
-        let distance = Math.random() * 80 + 40;
+        let angle = Math.random()*2*Math.PI;
+        let d = Math.random()*80+40;
 
-        let dx = Math.cos(angle) * distance;
-        let dy = Math.sin(angle) * distance;
+        p.style.left = x+"px";
+        p.style.top = y+"px";
 
-        p.style.left = x + "px";
-        p.style.top = y + "px";
+        p.style.setProperty('--x', Math.cos(angle)*d+"px");
+        p.style.setProperty('--y', Math.sin(angle)*d+"px");
 
-        p.style.setProperty('--x', dx + "px");
-        p.style.setProperty('--y', dy + "px");
+        p.style.background = Math.random()>0.5?"gold":"#ff4d4d";
 
-        p.style.background = Math.random() > 0.5 ? "gold" : "#ff4d4d";
+        c.appendChild(p);
 
-        container.appendChild(p);
-
-        setTimeout(()=>{ p.remove(); },1000);
+        setTimeout(()=>p.remove(),1000);
     }
 }
 
-setInterval(()=>{
-    createFirework();
-},700);
+setInterval(createFirework,700);
 </script>
 
 </body>
